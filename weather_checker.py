@@ -1,27 +1,34 @@
-import requests
+# Import the module.
+import python_weather
 
-API_KEY = "0a8f6398a706dc750d70328c97246cc7"
-city = input("Where are you located?: ")
+import asyncio
+import os
 
-lat = -11.8092
-lon = 51.509865
 
-url = f"https://api.openweathermap.org/data/3.0/onecall/overview?lat={lat}&lon={lon}&appid={API_KEY}"
-
-response = requests.get(url)
-
-print(response.status_code)
-
-if response.status_code == 200:
-    data = response.json()
-    weather = data['weather'][0]['description']
-    temp = data['main']['temp']
-    humidity = data['main']['humidity']
-    wind = data['wind']['speed']
+async def main() -> None:
+  
+  # Declare the client. The measuring unit used defaults to the metric system (celcius, km/h, etc.)
+  async with python_weather.Client(unit=python_weather.IMPERIAL) as client:
     
-    print(f"Weather in {city}: {weather}")
-    print(f"Temperature: {temp}°C")
-    print(f"Humidity: {humidity}%")
-    print(f"Wind Speed: {wind} m/s")
-else:
-    print("Error: Could not retrieve weather data.")
+    # Fetch a weather forecast from a city.
+    weather = await client.get('Toronto')
+    
+    # Fetch the temperature for today.
+    print(weather.temperature)
+    
+    # Fetch weather forecast for upcoming days.
+    for daily in weather:
+      print(daily)
+    
+      # Each daily forecast has their own hourly forecasts.
+      for hourly in daily:
+        print(f' --> {hourly!r}')
+
+if __name__ == '__main__':
+  
+  # See https://stackoverflow.com/questions/45600579/asyncio-event-loop-is-closed-when-getting-loop
+  # for more details.
+  if os.name == 'nt':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+  
+  asyncio.run(main())
