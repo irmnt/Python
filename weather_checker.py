@@ -22,7 +22,8 @@ async def main() -> None:
     
       # Each daily forecast has their own hourly forecasts.
       for hourly in daily:
-        print(f' --> {hourly!r}')
+        # print(f' --> {hourly!r}')
+        print(f' --> {hourly.time}, {hourly.temperature}F')
 
 if __name__ == '__main__':
   
