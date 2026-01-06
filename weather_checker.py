@@ -5,23 +5,39 @@ import asyncio
 import os
 
 
+def fahrenheit_to_celsius(fahrenheit: float) -> float:
+  """Convert Fahrenheit to Celsius."""
+  return (fahrenheit - 32) * 5/9
+
+
 async def main() -> None:
   
   # Declare the client. The measuring unit used defaults to the metric system (celcius, km/h, etc.)
   async with python_weather.Client(unit=python_weather.IMPERIAL) as client:
     
+
+    print('Enter the city name to get the weather forecast:')
+    city = input()
+    
     # Fetch a weather forecast from a city.
-    weather = await client.get('Toronto')
+    weather = await client.get(city)
+    
+    # Error handling for invalid city names.
+    if weather is False:
+      print(f'City "{city}" not found. Please check the city name and try again.')
+      return
+    
     hour = []
     hourly_weather = []
     description = []
     
     # Fetch the temperature for today.
-    print(weather.temperature)
+    print('Today:', f'{weather.temperature}F', ' | ', f'{fahrenheit_to_celsius(weather.temperature):.1f}C')
+    print('\n')
     
     # Fetch weather forecast for upcoming days.
     for daily in weather:
-      print(daily.date, end=' : ')
+      print(daily.date, end=' :\n ')
     
       # Each daily forecast has their own hourly forecasts.
       for hourly in daily:
@@ -36,15 +52,38 @@ async def main() -> None:
         print(f'{desc}', end=' ')
         print('-->', end=' ') if i != len(description)-1 else print(end=' ')
            
+      # Calculate column width based on max of hour, F, and C values
+      col_width = 3
+      for k in range(len(hourly_weather)):
+        celsius = fahrenheit_to_celsius(hourly_weather[k])
+        f_str = f'{hourly_weather[k]}F'
+        c_str = f'{celsius:.1f}C'
+        col_width = max(col_width, len(hour[k]), len(f_str), len(c_str)) + 1
+      
       #print hour 
       print(end='\n') 
+      print('Hour'.rjust(12), end='|')
       for j in range(len(hour)):
-        print(f' {hour[j]} |', end=' ')
+        output = f'{hour[j]}'
+        output_centerd  = output.center(col_width)
+        print(f'{output_centerd}'.rjust(col_width), end='|')
       
-      #print temperature  
+      #print temperature in Fahrenheit
       print(end='\n')
+      print('Fahrenheit'.rjust(12), end='|')
       for k in range(len(hourly_weather)):
-        print(f' {hourly_weather[k]}F  |', end=' ')
+        output = f'{hourly_weather[k]}F'
+        output_centered = output.center(col_width)
+        print(f'{output_centered}'.rjust(col_width), end='|')
+      
+      #print temperature in Celsius
+      print(end='\n')
+      print('Celsius'.rjust(12), end='|')
+      for k in range(len(hourly_weather)):
+        celsius = fahrenheit_to_celsius(hourly_weather[k])
+        output = f'{celsius:.1f}C'
+        output_centered = output.center(col_width)
+        print(f'{output_centered}'.rjust(col_width), end='|')
         
       print(end='\n')
       hour.clear()
